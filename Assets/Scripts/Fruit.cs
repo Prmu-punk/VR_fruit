@@ -8,6 +8,7 @@ public class Fruit : MonoBehaviour
     private Rigidbody fruitRigidbody;
     private Collider fruitCollider;
     private ParticleSystem juiceEffect;
+    private bool hasBeenSliced;
 
     public int points = 1;
 
@@ -20,6 +21,10 @@ public class Fruit : MonoBehaviour
 
     private void Slice(Vector3 direction, Vector3 position, float force)
     {
+        if (hasBeenSliced)
+            return;
+
+        hasBeenSliced = true;
         GameManager.Instance.IncreaseScore(points);
 
         // Disable the whole fruit
@@ -42,14 +47,42 @@ public class Fruit : MonoBehaviour
             slice.velocity = fruitRigidbody.velocity;
             slice.AddForceAtPosition(direction * force, position, ForceMode.Impulse);
         }
+
+        Destroy(gameObject, 3f);
+    }
+
+    public void BeginLifetime(float lifetime)
+    {
+        StartCoroutine(LifetimeRoutine(lifetime));
+    }
+
+    private System.Collections.IEnumerator LifetimeRoutine(float lifetime)
+    {
+        yield return new WaitForSeconds(lifetime);
+
+        if (!hasBeenSliced && GameManager.Instance != null) {
+            GameManager.Instance.ReportMissedFruit();
+        }
+
+        Destroy(gameObject);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            Blade blade = other.GetComponent<Blade>();
-            Slice(blade.direction, blade.transform.position, blade.sliceForce);
+            IBladeSliceSource blade = null;
+            MonoBehaviour[] behaviours = other.GetComponents<MonoBehaviour>();
+            foreach (MonoBehaviour behaviour in behaviours)
+            {
+                blade = behaviour as IBladeSliceSource;
+                if (blade != null)
+                    break;
+            }
+
+            if (blade != null) {
+                Slice(blade.Direction, blade.Position, blade.SliceForce);
+            }
         }
     }
 

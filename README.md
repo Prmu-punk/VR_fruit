@@ -1,8 +1,31 @@
-# Fruit Ninja
+# Fruit Ninja VR Simulator
 
-> Fruit Ninja is a mobile game developed by Halfbrick Studios that released in April 2010 on the iOS App Store. In Fruit Ninja, the player slices fruit with a blade controlled via the touch screen. As the fruit is thrown onto the screen, the player swipes their finger across the screen to create a slicing motion, attempting to slice the fruit in half.
+Unity VR-style Fruit Ninja project for the VR course final assignment.
 
-- **Topics**: Physics, 3D Models, Particle Effects
-- **Version**: Unity 2020.3 (LTS)
-- [**Download**](https://github.com/zigurous/unity-fruit-ninja-tutorial/archive/refs/heads/main.zip)
-- [**Watch Video**](https://youtu.be/xTT1Ae_ifhM)
+## Run in Unity
+
+- Recommended Unity version: `2021.3.16f1c1`.
+- Open this folder as a Unity project.
+- Open `Assets/Scenes/FruitNinja.unity`.
+- Press Play.
+- Without webcam tracking, the right XR saber follows the mouse. Hold left mouse button to slice.
+
+## Webcam XR Tracking
+
+The game listens for webcam tracking data on UDP port `7777`.
+
+Run the tracking service from the companion simulator project:
+
+```powershell
+cd "path\to\VR_simulator\tools\tracking_service"
+python webcam_tracking_service.py
+```
+
+Wait until the camera window shows `Calibrated: yes`, then return to Unity Play mode.
+
+When calibrated, the left and right webcam-tracked hands drive the left and right XR controller sabers.
+
+## Notes
+
+- Unity cache folders such as `Library/`, `Logs/`, and `UserSettings/` are intentionally ignored.
+- The original Fruit Ninja tutorial project is from `zigurous/unity-fruit-ninja-tutorial`.

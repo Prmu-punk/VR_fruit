@@ -21,6 +21,11 @@ public class Spawner : MonoBehaviour
     public float maxForce = 22f;
 
     public float maxLifetime = 5f;
+    public float spawnedObjectScale = 0.44f;
+    public float minSideForce = -0.55f;
+    public float maxSideForce = 0.55f;
+    public float minDepthForce = 0.18f;
+    public float maxDepthForce = 0.55f;
 
     private void Awake()
     {
@@ -59,10 +64,18 @@ public class Spawner : MonoBehaviour
             Quaternion rotation = Quaternion.Euler(0f, 0f, Random.Range(minAngle, maxAngle));
 
             GameObject fruit = Instantiate(prefab, position, rotation);
-            Destroy(fruit, maxLifetime);
+            fruit.transform.localScale *= spawnedObjectScale;
 
             float force = Random.Range(minForce, maxForce);
-            fruit.GetComponent<Rigidbody>().AddForce(fruit.transform.up * force, ForceMode.Impulse);
+            Vector3 launchDirection = new Vector3(Random.Range(minSideForce, maxSideForce), force, Random.Range(minDepthForce, maxDepthForce));
+            fruit.GetComponent<Rigidbody>().AddForce(launchDirection, ForceMode.Impulse);
+
+            Fruit fruitScript = fruit.GetComponent<Fruit>();
+            if (fruitScript != null) {
+                fruitScript.BeginLifetime(maxLifetime);
+            } else {
+                Destroy(fruit, maxLifetime);
+            }
 
             yield return new WaitForSeconds(Random.Range(minSpawnDelay, maxSpawnDelay));
         }
