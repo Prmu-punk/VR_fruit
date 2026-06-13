@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private DojoSceneBuilder dojoSceneBuilder;
     [SerializeField] private XRRuntimeRigDriver xrRuntimeRigDriver;
     [Header("VR HUD")]
-    [SerializeField] private Vector3 hudWorldPosition = new Vector3(0f, 1.7f, -3.15f);
+    [SerializeField] private Vector3 hudWorldPosition = new Vector3(0f, 1.7f, -3.35f);
     [SerializeField] private Vector2 hudCanvasSize = new Vector2(1.2f, 0.28f);
     [SerializeField] private float hudCanvasScale = 0.0015f;
 
@@ -256,7 +256,8 @@ public class GameManager : MonoBehaviour
 
     private void ConfigureSpawnerForMode(FruitNinjaMode mode)
     {
-        spawner.spawnedObjectScale = 0.08f;
+        spawner.minSpawnedObjectScale = 0.22f;
+        spawner.maxSpawnedObjectScale = 0.3f;
         spawner.minSideForce = -0.18f;
         spawner.maxSideForce = 0.18f;
         spawner.minDepthForce = 0.04f;

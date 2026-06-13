@@ -6,8 +6,8 @@ public class StartMenuView : MonoBehaviour
 {
     [SerializeField] private GameObject startFruitPrefab;
     [SerializeField] private GameObject[] modeFruitPrefabs;
-    [SerializeField] private float startFruitScale = 0.075f;
-    [SerializeField] private Vector3 menuCanvasPosition = new Vector3(0f, 1.8f, -3.25f);
+    [SerializeField] private float startFruitScale = 0.18f;
+    [SerializeField] private Vector3 menuCanvasPosition = new Vector3(0f, 1.8f, -3.45f);
     [SerializeField] private Vector3 menuCanvasEulerAngles = new Vector3(0f, 0f, 0f);
     [SerializeField] private Vector2 menuCanvasSize = new Vector2(1.4f, 0.55f);
     [SerializeField] private float menuCanvasScale = 0.0015f;

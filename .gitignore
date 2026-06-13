@@ -62,6 +62,11 @@ sysinfo.txt
 *.aab
 *.unitypackage
 
+# Downloaded source archives / local captures
+*.zip
+*.blend
+Recordings/
+
 # Source art backups / temporary exports
 /[Aa]ssets/[Mm]odels/[Bb]lender~/
 

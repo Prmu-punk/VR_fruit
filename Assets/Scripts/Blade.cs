@@ -31,6 +31,7 @@ public class Blade : MonoBehaviour, IBladeSliceSource
     [SerializeField] private Vector3 xrBladeTipOffset = new Vector3(0f, 0f, 0.32f);
     [SerializeField] private Vector3 xrBladeLocalAxis = Vector3.forward;
     [SerializeField] private Vector3 xrBladeRotationOffsetEuler = new Vector3(-6f, 0f, 0f);
+    [SerializeField] private float xrBladeHandleRollOffsetDegrees = 90f;
     [SerializeField] private bool clampXRToPlayVolume = false;
     [SerializeField] private bool showTrailInXR = false;
 
@@ -38,7 +39,7 @@ public class Blade : MonoBehaviour, IBladeSliceSource
     [SerializeField] private float desktopSlicePlaneZ = -3.35f;
 
     [Header("Collision")]
-    [SerializeField] private Vector3 sliceCollider3DSize = new Vector3(0.055f, 0.52f, 0.055f);
+    [SerializeField] private Vector3 sliceCollider3DSize = new Vector3(0.026f, 0.29f, 0.022f);
 
     private Camera mainCamera;
     private BoxCollider sliceCollider;
@@ -398,7 +399,8 @@ public class Blade : MonoBehaviour, IBladeSliceSource
                 ? lastLeftBladePosition
                 : bladePosition;
         Vector3 movement = bladePosition - previousPosition;
-        Quaternion bladeRotation = BladeAxisToRotation(bladeAxis, correctedControllerRotation * Vector3.up);
+        Quaternion bladeRotation = Quaternion.AngleAxis(xrBladeHandleRollOffsetDegrees, bladeAxis)
+            * BladeAxisToRotation(bladeAxis, correctedControllerRotation * Vector3.up);
         pose = new BladePose3D(hand, bladePosition, bladeRotation, movement, true);
         return true;
     }
@@ -411,6 +413,8 @@ public class Blade : MonoBehaviour, IBladeSliceSource
 
         float velocity = Time.deltaTime > 0f ? pose.Direction.magnitude / Time.deltaTime : 0f;
         sliceCollider.enabled = pose.Active && velocity > minSliceVelocity;
+        if (sliceCollider.enabled)
+            SweepBombs(sliceCollider, this);
 
         bool showTrail = pose.Active && (!xrSliceActive || showTrailInXR);
         if (showTrail && sliceTrail != null && !sliceTrail.enabled)
@@ -445,10 +449,28 @@ public class Blade : MonoBehaviour, IBladeSliceSource
         float velocity = Time.deltaTime > 0f ? leftBladeDirection.magnitude / Time.deltaTime : 0f;
         leftSliceObject.transform.SetPositionAndRotation(pose.Position, pose.Rotation);
         leftSliceCollider.enabled = pose.Active && velocity > minSliceVelocity;
+        if (leftSliceCollider.enabled)
+            SweepBombs(leftSliceCollider, leftSliceObject.GetComponent<LeftBladeProxy>());
         previousLeftBladePosition = pose.Position;
         lastLeftBladePosition = pose.Position;
         lastLeftBladeRotation = pose.Rotation;
         hasLastLeftBladePosition = true;
+    }
+
+    private void SweepBombs(BoxCollider bladeCollider, IBladeSliceSource sliceSource)
+    {
+        if (bladeCollider == null || sliceSource == null)
+            return;
+
+        Vector3 center = bladeCollider.transform.TransformPoint(bladeCollider.center);
+        Vector3 halfExtents = Vector3.Scale(bladeCollider.size, bladeCollider.transform.lossyScale) * 0.5f;
+        Collider[] hits = Physics.OverlapBox(center, halfExtents, bladeCollider.transform.rotation, ~0, QueryTriggerInteraction.Collide);
+        foreach (Collider hit in hits)
+        {
+            Bomb bomb = hit.GetComponentInParent<Bomb>();
+            if (bomb != null)
+                bomb.TrySlice(sliceSource);
+        }
     }
 
     private Vector3 WebcamHandToWorld(Vector3 handPosition, Vector3 neutralPosition)

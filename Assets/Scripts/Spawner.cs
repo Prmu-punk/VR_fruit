@@ -21,7 +21,8 @@ public class Spawner : MonoBehaviour
     public float maxForce = 22f;
 
     public float maxLifetime = 5f;
-    public float spawnedObjectScale = 0.44f;
+    public float minSpawnedObjectScale = 0.22f;
+    public float maxSpawnedObjectScale = 0.3f;
     public float minSideForce = -0.55f;
     public float maxSideForce = 0.55f;
     public float minDepthForce = 0.18f;
@@ -64,7 +65,7 @@ public class Spawner : MonoBehaviour
             Quaternion rotation = Quaternion.Euler(0f, 0f, Random.Range(minAngle, maxAngle));
 
             GameObject fruit = Instantiate(prefab, position, rotation);
-            fruit.transform.localScale *= spawnedObjectScale;
+            fruit.transform.localScale *= Random.Range(minSpawnedObjectScale, maxSpawnedObjectScale);
 
             float force = Random.Range(minForce, maxForce);
             Vector3 launchDirection = new Vector3(Random.Range(minSideForce, maxSideForce), force, Random.Range(minDepthForce, maxDepthForce));

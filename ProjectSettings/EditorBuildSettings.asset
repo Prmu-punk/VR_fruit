@@ -4,7 +4,13 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/FruitNinja.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Stylized Asia RG/Scenes/Demo Stylized Asia.unity
+    guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a6aa8c3382992c74dbdaf8aaa89ccab1, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: f8d30802f7a773e46831d65d8e1b10d9, type: 2}

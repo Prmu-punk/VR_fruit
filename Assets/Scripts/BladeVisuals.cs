@@ -8,18 +8,20 @@ public class BladeVisuals : MonoBehaviour
     [SerializeField] private Vector3 leftViewportIdle = new Vector3(0.38f, 0.08f, 1.05f);
     [SerializeField] private Vector3 bladeRootOffset = new Vector3(0f, -0.12f, 0f);
 
-    private Material rightMaterial;
-    private Material leftMaterial;
+    private Material bladeMaterial;
+    private Material handleMaterial;
+    private Material guardMaterial;
     private Camera mainCamera;
 
     private void Awake()
     {
         mainCamera = Camera.main;
-        rightMaterial = CreateMaterial("Right Saber Material", new Color(0.25f, 0.9f, 1f));
-        leftMaterial = CreateMaterial("Left Saber Material", new Color(1f, 0.55f, 0.12f));
+        bladeMaterial = CreateBladeMaterial();
+        handleMaterial = CreateSimpleMaterial("Fruit Knife Handle Material", new Color(0.055f, 0.05f, 0.045f), 0.28f, 0.25f);
+        guardMaterial = CreateSimpleMaterial("Fruit Knife Guard Material", new Color(0.45f, 0.42f, 0.36f), 0.72f, 0.46f);
 
-        rightBlade = CreateBlade("Right VR Saber", rightMaterial, ViewportToWorld(rightViewportIdle));
-        leftBlade = CreateBlade("Left VR Saber", leftMaterial, ViewportToWorld(leftViewportIdle));
+        rightBlade = CreateBlade("Right VR Fruit Knife", ViewportToWorld(rightViewportIdle));
+        leftBlade = CreateBlade("Left VR Fruit Knife", ViewportToWorld(leftViewportIdle));
     }
 
     public void SetRightBladePose(Vector3 bladeTip, bool active)
@@ -81,33 +83,41 @@ public class BladeVisuals : MonoBehaviour
         }
     }
 
-    private Transform CreateBlade(string name, Material material, Vector3 idlePosition)
+    private Transform CreateBlade(string name, Vector3 idlePosition)
     {
         GameObject root = new GameObject(name);
         root.transform.position = idlePosition;
 
-        GameObject shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        shaft.name = "Saber Shaft";
-        shaft.transform.SetParent(root.transform, false);
-        shaft.transform.localScale = new Vector3(0.055f, 0.26f, 0.055f);
-        shaft.transform.localPosition = new Vector3(0f, 0.16f, 0f);
-        shaft.GetComponent<Renderer>().material = material;
-        Destroy(shaft.GetComponent<Collider>());
+        GameObject blade = new GameObject("Flat Fruit Knife Blade");
+        blade.transform.SetParent(root.transform, false);
+        blade.transform.localPosition = new Vector3(0f, 0.045f, 0f);
+        MeshFilter meshFilter = blade.AddComponent<MeshFilter>();
+        meshFilter.sharedMesh = CreateFlatBladeMesh();
+        MeshRenderer meshRenderer = blade.AddComponent<MeshRenderer>();
+        meshRenderer.material = bladeMaterial;
+
+        GameObject spine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        spine.name = "Fruit Knife Dull Spine";
+        spine.transform.SetParent(root.transform, false);
+        spine.transform.localPosition = new Vector3(-0.022f, 0.09f, 0f);
+        spine.transform.localScale = new Vector3(0.01f, 0.25f, 0.01f);
+        spine.GetComponent<Renderer>().material = guardMaterial;
+        Destroy(spine.GetComponent<Collider>());
 
         GameObject guard = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        guard.name = "Saber Guard";
+        guard.name = "Fruit Knife Guard";
         guard.transform.SetParent(root.transform, false);
-        guard.transform.localPosition = new Vector3(0f, -0.12f, 0f);
-        guard.transform.localScale = new Vector3(0.14f, 0.025f, 0.045f);
-        guard.GetComponent<Renderer>().material = material;
+        guard.transform.localPosition = new Vector3(0f, -0.105f, 0f);
+        guard.transform.localScale = new Vector3(0.095f, 0.016f, 0.032f);
+        guard.GetComponent<Renderer>().material = guardMaterial;
         Destroy(guard.GetComponent<Collider>());
 
-        GameObject handle = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        handle.name = "Saber Handle";
+        GameObject handle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        handle.name = "Fruit Knife Handle";
         handle.transform.SetParent(root.transform, false);
-        handle.transform.localPosition = new Vector3(0f, -0.24f, 0f);
-        handle.transform.localScale = new Vector3(0.04f, 0.11f, 0.04f);
-        handle.GetComponent<Renderer>().material = material;
+        handle.transform.localPosition = new Vector3(0f, -0.175f, 0f);
+        handle.transform.localScale = new Vector3(0.044f, 0.115f, 0.034f);
+        handle.GetComponent<Renderer>().material = handleMaterial;
         Destroy(handle.GetComponent<Collider>());
 
         return root.transform;
@@ -122,13 +132,58 @@ public class BladeVisuals : MonoBehaviour
         return mainCamera != null ? mainCamera.ViewportToWorldPoint(viewportPosition) : Vector3.zero;
     }
 
-    private static Material CreateMaterial(string name, Color color)
+    private static Mesh CreateFlatBladeMesh()
+    {
+        float baseY = -0.06f;
+        float tipY = 0.25f;
+        float baseHalfWidth = 0.029f;
+        float tipHalfWidth = 0.006f;
+        float halfThickness = 0.0038f;
+
+        Vector3[] vertices =
+        {
+            new Vector3(-baseHalfWidth, baseY, -halfThickness),
+            new Vector3(baseHalfWidth, baseY, -halfThickness),
+            new Vector3(tipHalfWidth, tipY, -halfThickness),
+            new Vector3(-tipHalfWidth, tipY, -halfThickness),
+            new Vector3(-baseHalfWidth, baseY, halfThickness),
+            new Vector3(baseHalfWidth, baseY, halfThickness),
+            new Vector3(tipHalfWidth, tipY, halfThickness),
+            new Vector3(-tipHalfWidth, tipY, halfThickness),
+        };
+
+        int[] triangles =
+        {
+            0, 2, 1, 0, 3, 2,
+            4, 5, 6, 4, 6, 7,
+            0, 4, 7, 0, 7, 3,
+            1, 2, 6, 1, 6, 5,
+            3, 7, 6, 3, 6, 2,
+            0, 1, 5, 0, 5, 4,
+        };
+
+        Mesh mesh = new Mesh();
+        mesh.name = "Runtime Flat Fruit Knife Blade Mesh";
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        return mesh;
+    }
+
+    private static Material CreateBladeMaterial()
+    {
+        Material material = CreateSimpleMaterial("Fruit Knife Blade Material", new Color(0.82f, 0.9f, 0.94f), 0.88f, 0.58f);
+        return material;
+    }
+
+    private static Material CreateSimpleMaterial(string name, Color color, float metallic, float smoothness)
     {
         Material material = new Material(Shader.Find("Standard"));
         material.name = name;
         material.color = color;
-        material.EnableKeyword("_EMISSION");
-        material.SetColor("_EmissionColor", color * 1.6f);
+        material.SetFloat("_Metallic", metallic);
+        material.SetFloat("_Glossiness", smoothness);
         return material;
     }
 }

@@ -7,7 +7,6 @@ public class Fruit : MonoBehaviour
 
     private Rigidbody fruitRigidbody;
     private Collider fruitCollider;
-    private ParticleSystem juiceEffect;
     private bool hasBeenSliced;
 
     public int points = 1;
@@ -16,7 +15,8 @@ public class Fruit : MonoBehaviour
     {
         fruitRigidbody = GetComponent<Rigidbody>();
         fruitCollider = GetComponent<Collider>();
-        juiceEffect = GetComponentInChildren<ParticleSystem>();
+        DownloadedArtLibrary.ApplyFruitVisuals(gameObject, whole, sliced);
+        DisableLegacyJuiceEffects();
     }
 
     private void Slice(Vector3 direction, Vector3 position, Quaternion bladeRotation, float force)
@@ -33,21 +33,48 @@ public class Fruit : MonoBehaviour
 
         // Enable the sliced fruit
         sliced.SetActive(true);
-        juiceEffect.Play();
 
         Vector3 sliceDirection = direction.sqrMagnitude > 0.0001f ? direction : bladeRotation * Vector3.up;
         sliced.transform.rotation = Quaternion.LookRotation(bladeRotation * Vector3.forward, sliceDirection.normalized);
+        DownloadedArtLibrary.PlayFruitSliceVfx(position, sliceDirection, gameObject);
 
         Rigidbody[] slices = sliced.GetComponentsInChildren<Rigidbody>();
+        Vector3 separationAxis = bladeRotation * Vector3.right;
+        if (separationAxis.sqrMagnitude < 0.0001f)
+            separationAxis = Vector3.right;
+        separationAxis.Normalize();
+
+        float separationForce = Mathf.Max(force * 0.32f, 0.85f);
+        float spinForce = Mathf.Max(force * 0.045f, 0.12f);
+        float separationOffset = Mathf.Max(transform.lossyScale.x * 0.16f, 0.035f);
 
         // Add a force to each slice based on the blade direction
-        foreach (Rigidbody slice in slices)
+        for (int i = 0; i < slices.Length; i++)
         {
-            slice.velocity = fruitRigidbody.velocity;
-            slice.AddForceAtPosition(sliceDirection * force, position, ForceMode.Impulse);
+            Rigidbody slice = slices[i];
+            float side = i == 0 ? -1f : 1f;
+            slice.WakeUp();
+            slice.transform.position += separationAxis * side * separationOffset;
+            slice.velocity = fruitRigidbody.velocity + separationAxis * side * separationForce + sliceDirection.normalized * Mathf.Max(force * 0.06f, 0.12f);
+            slice.angularVelocity = separationAxis * side * spinForce;
+            slice.AddForceAtPosition(sliceDirection * force * 0.12f, position, ForceMode.Impulse);
+            slice.AddForce(separationAxis * side * separationForce * 0.45f, ForceMode.Impulse);
+            slice.AddTorque(separationAxis * side * spinForce, ForceMode.Impulse);
         }
 
         Destroy(gameObject, 3f);
+    }
+
+    private void DisableLegacyJuiceEffects()
+    {
+        ParticleSystem[] particles = GetComponentsInChildren<ParticleSystem>(true);
+        foreach (ParticleSystem particle in particles)
+        {
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ParticleSystem.EmissionModule emission = particle.emission;
+            emission.enabled = false;
+            particle.gameObject.SetActive(false);
+        }
     }
 
     public void BeginLifetime(float lifetime)
